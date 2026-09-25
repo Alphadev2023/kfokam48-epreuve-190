@@ -3,7 +3,13 @@ import type { FormEvent } from "react";
 import { marquerPresence } from "../api/presences";
 import { MessageErreur } from "./MessageErreur";
 
-export function MarquerPresence({ etudiantId }: { etudiantId: number }) {
+export function MarquerPresence({
+  etudiantId,
+  onEnregistree,
+}: {
+  etudiantId: number;
+  onEnregistree?: () => void;
+}) {
   const [code, setCode] = useState("");
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [erreur, setErreur] = useState<unknown>(null);
@@ -18,6 +24,7 @@ export function MarquerPresence({ etudiantId }: { etudiantId: number }) {
       await marquerPresence(code, etudiantId);
       setEnregistree(true);
       setCode("");
+      onEnregistree?.();
     } catch (err) {
       setErreur(err);
     } finally {

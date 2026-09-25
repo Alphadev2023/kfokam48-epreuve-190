@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { ChoixEtudiant } from "../components/ChoixEtudiant";
+import { DeposerExercice } from "../components/DeposerExercice";
 import { MarquerPresence } from "../components/MarquerPresence";
 import { useIdentite } from "../identite/IdentiteContext";
 
 export default function EtudiantPage() {
   const { identite, oublier } = useIdentite();
+  const [rafraichissement, setRafraichissement] = useState(0);
 
   if (!identite) {
     return (
@@ -24,7 +27,15 @@ export default function EtudiantPage() {
           Ce n'est pas moi
         </button>
       </p>
-      <MarquerPresence etudiantId={identite.etudiantId} />
+      <MarquerPresence
+        etudiantId={identite.etudiantId}
+        onEnregistree={() => setRafraichissement((n) => n + 1)}
+      />
+      <DeposerExercice
+        etudiantId={identite.etudiantId}
+        promotionId={identite.promotionId}
+        rafraichissement={rafraichissement}
+      />
     </section>
   );
 }

@@ -33,3 +33,23 @@ export interface Presence {
   etudiantId: number;
   source: SourcePresence;
 }
+
+export type StatutExercice =
+  | "EN_ATTENTE_ATTRIBUTION"
+  | "EN_ATTENTE_RELECTURE"
+  | "RELU";
+
+export interface ExerciceDepose {
+  id: number;
+  statut: StatutExercice;
+}
+
+export interface ExerciceRecu {
+  id: number;
+  sessionId: number;
+  sessionTitre: string;
+  lien: string;
+  statut: StatutExercice;
+  note: number | null;
+  commentaire: string | null;
+}
