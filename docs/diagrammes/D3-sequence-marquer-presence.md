@@ -17,7 +17,7 @@ sequenceDiagram
     E->>F: se choisit dans la liste (EF2) puis saisit le code
     F->>C: POST /api/presences {code, etudiantId}
     C->>S: marquer(code, etudiantId)
-    S->>SR: findByCode(code)
+        S->>SR: findByCodeAvecVerrou(code) (verrou sur la session, ENF8)
 
     alt code inconnu (RG19)
         SR-->>S: aucune session
@@ -49,3 +49,5 @@ sequenceDiagram
 ```
 
 **Cas non détaillés dans le diagramme**, contrôlés entre l'expiration et le doublon : champ manquant (400 CHAMP_MANQUANT), étudiant inconnu (400 ETUDIANT_INCONNU) et étudiant d'une autre promotion (400 ETUDIANT_HORS_PROMOTION, RG6). L'enregistrement de la présence et l'attribution se font dans la même transaction.
+
+**Depuis le correctif de l'issue #<B> :** la session est lue avec un verrou pessimiste (`SELECT ... FOR UPDATE`). Les marquages simultanés d'une même session sont traités l'un après l'autre. Avant ce correctif, deux marquages simultanés pouvaient tenter d'attribuer le même exercice en attente (RG14) ; l'un échouait et sa présence était perdue.
