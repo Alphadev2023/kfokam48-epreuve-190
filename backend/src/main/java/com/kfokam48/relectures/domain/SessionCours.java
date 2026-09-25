@@ -70,6 +70,11 @@ public class SessionCours {
         return statut == StatutSession.OUVERTE && instant.isBefore(expirationAt);
     }
 
+    /** RG10 : apres la cloture, plus de depot ni de remplacement de lien. */
+    public boolean estCloturee() {
+        return statut == StatutSession.CLOTUREE;
+    }
+
     public Long getId() {
         return id;
     }
