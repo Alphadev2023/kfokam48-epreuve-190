@@ -26,15 +26,18 @@ public class ExerciceService {
     private final EtudiantRepository etudiantRepository;
     private final PresenceRepository presenceRepository;
     private final ExerciceRepository exerciceRepository;
+    private final AttributionService attributionService;
     private final Clock horloge;
+
 
     public ExerciceService(SessionRepository sessionRepository, EtudiantRepository etudiantRepository,
                            PresenceRepository presenceRepository, ExerciceRepository exerciceRepository,
-                           Clock horloge) {
+                           AttributionService attributionService, Clock horloge) {
         this.sessionRepository = sessionRepository;
         this.etudiantRepository = etudiantRepository;
         this.presenceRepository = presenceRepository;
         this.exerciceRepository = exerciceRepository;
+        this.attributionService = attributionService;
         this.horloge = horloge;
     }
 
@@ -63,7 +66,7 @@ public class ExerciceService {
         Exercice exercice = exerciceRepository.save(
                 Exercice.deposer(session, auteur, lien, Instant.now(horloge)));
 
-        // RG13 : le tirage du relecteur sera branche ici par l'issue #6
+        attributionService.attribuer(exercice); // RG13, RG14
         return ExerciceDeposeDto.depuis(exercice);
     }
 
