@@ -54,6 +54,11 @@ public class Presence {
         return new Presence(session, etudiant, SourcePresence.ETUDIANT, maintenant);
     }
 
+    /** RG7 (Q14) : la presence ajoutee a la main se voit. */
+    public static Presence parFormateur(SessionCours session, Etudiant etudiant, Instant maintenant) {
+        return new Presence(session, etudiant, SourcePresence.FORMATEUR, maintenant);
+    }
+
     public Long getId() {
         return id;
     }

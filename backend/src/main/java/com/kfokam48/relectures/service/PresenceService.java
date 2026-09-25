@@ -3,6 +3,7 @@ package com.kfokam48.relectures.service;
 import com.kfokam48.relectures.domain.Etudiant;
 import com.kfokam48.relectures.domain.Presence;
 import com.kfokam48.relectures.domain.SessionCours;
+import com.kfokam48.relectures.dto.PresenceDetailDto;
 import com.kfokam48.relectures.dto.PresenceDto;
 import com.kfokam48.relectures.dto.PresenceRequete;
 import com.kfokam48.relectures.exception.MetierException;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 
 /** Ordre des controles : diagramme D3. */
@@ -69,5 +71,41 @@ public class PresenceService {
 
         attributionService.attribuerExercicesEnAttente(session.getId()); // RG14, D3
         return PresenceDto.depuis(presence);
+    }
+
+    /**
+     * EF9, RG7 (Q14, H11) : presence ajoutee par le formateur, acceptee apres l'expiration du code
+     * mais pas apres la cloture. Declenche le tirage des relecteurs manquants (RG14).
+     */
+    @Transactional
+    public PresenceDto ajouterParFormateur(Long sessionId, Long etudiantId) {
+        SessionCours session = sessionRepository.findByIdAvecVerrou(sessionId)
+                .orElseThrow(() -> new MetierException(HttpStatus.NOT_FOUND, "SESSION_INCONNUE"));
+        if (session.estCloturee()) {
+            throw new MetierException(HttpStatus.CONFLICT, "SESSION_CLOTUREE");
+        }
+
+        Etudiant etudiant = etudiantRepository.findById(etudiantId)
+                .orElseThrow(() -> new MetierException(HttpStatus.BAD_REQUEST, "ETUDIANT_INCONNU"));
+        if (!etudiant.getPromotion().getId().equals(session.getPromotion().getId())) {
+            throw new MetierException(HttpStatus.BAD_REQUEST, "ETUDIANT_HORS_PROMOTION");
+        }
+        if (presenceRepository.existsBySessionIdAndEtudiantId(session.getId(), etudiant.getId())) {
+            throw new MetierException(HttpStatus.CONFLICT, "DEJA_PRESENT");
+        }
+
+        Presence presence = presenceRepository.save(Presence.parFormateur(session, etudiant, Instant.now(horloge)));
+        attributionService.attribuerExercicesEnAttente(session.getId()); // RG14
+        return PresenceDto.depuis(presence);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PresenceDetailDto> presencesDeLaSession(Long sessionId) {
+        if (!sessionRepository.existsById(sessionId)) {
+            throw new MetierException(HttpStatus.NOT_FOUND, "SESSION_INCONNUE");
+        }
+        return presenceRepository.findBySessionIdAvecEtudiant(sessionId).stream()
+                .map(PresenceDetailDto::depuis)
+                .toList();
     }
 }
