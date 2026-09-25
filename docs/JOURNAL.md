@@ -73,3 +73,5 @@
 **Ce que je referais autrement avec une journée de plus :** faire l'épreuve Git dès la fin de l'étape 2, parce qu'elle est courte et très rentable. Vérifier `git branch` avant chaque premier commit d'une issue. Remplacer les emplacements comme `#<B>` avant de lancer une commande, pas après. Numéroter les données de démonstration dans un espace de versions séparé dès le départ, pour ne pas bloquer une migration future.
 
 | 2.1 | Après la soumission, issue #11 | EF10 (clôture) réintégrée dans le périmètre à la demande du formateur |
+
+| 2.2 | Après la soumission, issue #12 | EF11 (remplacement du lien) réintégrée ; D4 montre de nouveau le remplacement et l'effet de la clôture |

@@ -91,4 +91,32 @@ public class ExerciceService {
                 .map(e -> ExerciceRecuDto.depuis(e, relecturesParExercice.getOrDefault(e.getId(), List.of())))
                 .toList();
     }
+
+    /**
+     * EF11 (Q13). Codes : 404 EXERCICE_INCONNU, 403 PAS_AUTEUR, 400 LIEN_INVALIDE,
+     * 409 SESSION_CLOTUREE (RG10) ou RELECTURE_RENDUE (RG16).
+     * Verrou sur l'exercice : meme ordre de verrouillage que le rendu d'une relecture (ENF8).
+     */
+    @Transactional
+    public ExerciceDeposeDto remplacerLien(Long exerciceId, String nouveauLien, Long appelantId) {
+        Exercice exercice = exerciceRepository.findByIdAvecVerrou(exerciceId)
+                .orElseThrow(() -> new MetierException(HttpStatus.NOT_FOUND, "EXERCICE_INCONNU"));
+
+        if (!exercice.getAuteur().getId().equals(appelantId)) {
+            throw new MetierException(HttpStatus.FORBIDDEN, "PAS_AUTEUR");
+        }
+        String lien = nouveauLien.trim();
+        if (!Exercice.lienValide(lien)) {
+            throw new MetierException(HttpStatus.BAD_REQUEST, "LIEN_INVALIDE");                 // RG11
+        }
+        if (exercice.getSession().estCloturee()) {
+            throw new MetierException(HttpStatus.CONFLICT, "SESSION_CLOTUREE");                 // RG10
+        }
+        if (relectureRepository.countByExerciceIdAndRendueAtIsNotNull(exercice.getId()) > 0) {
+            throw new MetierException(HttpStatus.CONFLICT, "RELECTURE_RENDUE");                 // RG16
+        }
+
+        exercice.remplacerLien(lien, Instant.now(horloge));
+        return ExerciceDeposeDto.depuis(exercice);
+    }
 }

@@ -52,14 +52,14 @@ Conséquences sur le modèle de données :
 - Le détail de la présence session par session dans le tableau (Q16, H13).
 - La réattribution manuelle d'un relecteur défaillant.
 - La réouverture de session, les notifications, l'export et le rendu visuel.
-- **Sortis du périmètre à l'étape 3 (v2) :** la clôture de session (EF10) et le remplacement du lien (EF11).
+- **Sortis du périmètre à l'étape 3 (v2), puis réintégrés après la soumission à la demande du formateur (v2.1 et v2.2) :** la clôture de session (EF10) et le remplacement du lien (EF11).
 
 **Pourquoi ce sacrifice.** Le passage à deux relecteurs est un Must arrivé tard, qui touche la base, le contrat et le front à la fois. Parmi les exigences restantes, EF10 et EF11 sont celles dont l'absence coûte le moins :
 
 - sans clôture, les sessions restent ouvertes et le dépôt reste possible, ce qui va dans le sens de Q12 ;
 - sans remplacement, un étudiant qui se trompe de lien le signale au formateur.
 
-EF8 (Q11) et EF9 (Q14) sont gardées, parce que le client les a demandées explicitement. Les issues #11 et #12 restent ouvertes avec le label `hors-perimetre`.
+EF8 (Q11) et EF9 (Q14) sont gardées, parce que le client les a demandées explicitement. Ce sacrifice a tenu jusqu'à la soumission. Les issues #11 et #12 ont été traitées ensuite.
 
 ## 4. Exigences fonctionnelles
 
@@ -75,7 +75,7 @@ EF8 (Q11) et EF9 (Q14) sont gardées, parce que le client les a demandées expli
 | EF8  | Le formateur voit les exercices encore sans relecture complète (Q11)                         | Quand un exercice n'a pas toutes ses relectures rendues, alors il figure dans la liste des exercices en attente du formateur, avec l'auteur, la session et son statut                                                                                                                                           | Should                    |
 | EF9  | Le formateur ajoute une présence à la main (RG7)                                             | Quand le formateur ajoute un étudiant à une session non clôturée, alors la présence est créée avec la mention « ajouté par le formateur » (source FORMATEUR), même après l'expiration du code                                                                                                                   | Should                    |
 | EF10 | Le formateur clôture une session (RG10, RG20)                                                | Quand le formateur clôture une session, alors plus aucune présence ni aucun dépôt n'est accepté pour cette session ; les relectures déjà attribuées peuvent encore être rendues                                                                                                                                 | Should (réintégrée, v2.1) |     | Sorti (étape 3) |
-| EF11 | L'étudiant remplace le lien de son exercice (RG10, RG16)                                     | Quand l'auteur remplace le lien d'un exercice dont aucune relecture n'est rendue, alors les relecteurs voient le nouveau lien                                                                                                                                                                                   | Sorti (étape 3)           |
+| EF11 | L'étudiant remplace le lien de son exercice (RG10, RG16)                                     | Quand l'auteur remplace le lien d'un exercice dont aucune relecture n'est rendue et dont la séance n'est pas clôturée, alors les relecteurs voient le nouveau lien. Sinon, il lit un message d'erreur et le lien ne change pas                                                                                  | Should (réintégrée, v2.2) |     | Sorti (étape 3) |
 | EF12 | L'étudiant consulte la note retenue et les commentaires reçus (Q8, RG18, RG21) (v2)          | Quand au moins une relecture de mon exercice est rendue, alors je vois la note retenue, marquée « provisoire » s'il en manque une, et les commentaires, sans aucun nom de relecteur ni dans l'écran ni dans la réponse de l'API                                                                                 | Must (v2)                 |
 | EF13 | Protection contre la devinette des codes (Q4)                                                | Quand un étudiant a saisi 5 codes inconnus, alors ses tentatives sont refusées pendant 2 minutes                                                                                                                                                                                                                | Could                     |
 | EF14 | La note retenue d'un exercice est la moyenne de ses relectures (RG21) (v2)                   | Quand les deux relectures sont rendues avec 13 et 16, alors la note retenue est 14,5 et elle n'est pas provisoire. Quand une seule est rendue avec 12, alors la note retenue est 12, marquée provisoire. Quand aucune n'est rendue, alors il n'y a pas de note                                                  | Must                      |

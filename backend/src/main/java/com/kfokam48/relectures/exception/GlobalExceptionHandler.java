@@ -54,6 +54,17 @@ public class GlobalExceptionHandler {
         return erreur(HttpStatus.BAD_REQUEST, "REQUETE_INVALIDE");
     }
 
+    /** H12 : requete illisible, parametre ou en-tete absent (X-Etudiant-Id, H7). */
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingRequestHeaderException.class,
+            HttpMediaTypeNotSupportedException.class
+    })
+    public ResponseEntity<ErreurDto> requeteInvalide(Exception e) {
+        return erreur(HttpStatus.BAD_REQUEST, "REQUETE_INVALIDE");
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErreurDto> introuvable(NoResourceFoundException e) {
         return erreur(HttpStatus.NOT_FOUND, "RESSOURCE_INTROUVABLE");

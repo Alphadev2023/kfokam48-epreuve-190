@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat — KF48 Présences & Relectures
-  version: "2.0"
+  version: "2.1"
   description: |
     Les cinq opérations marquées [IMPOSÉ] sont reprises exactement du contrat fourni :
     mêmes chemins, mêmes verbes, mêmes codes de statut, même format d'erreur.
@@ -10,8 +10,6 @@ info:
     Seule exception, commune à toutes les opérations : une requête illisible
     (JSON mal formé, paramètre absent ou non numérique) renvoie 400 REQUETE_INVALIDE.
     Les opérations marquées [AJOUT] sont propres à ce projet.
-    Les opérations marquées [NON IMPLÉMENTÉ] sont sorties du périmètre à l'étape 3
-    (CDC section 3, version 2) : elles restent décrites pour une version ultérieure.
 
 servers:
   - url: http://localhost:8080
