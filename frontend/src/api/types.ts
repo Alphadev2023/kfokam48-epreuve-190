@@ -84,3 +84,19 @@ export interface ExerciceRecu {
   noteProvisoire: boolean;
   commentaires: string[];
 }
+
+export interface RelecteurSuivi {
+  nom: string;
+  rendue: boolean;
+}
+
+export interface ExerciceEnAttente {
+  exerciceId: number;
+  sessionId: number;
+  sessionTitre: string;
+  auteurId: number;
+  auteurNom: string;
+  statut: StatutExercice;
+  relecteursAttendus: number;
+  relecteurs: RelecteurSuivi[];
+}

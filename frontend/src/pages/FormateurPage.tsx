@@ -7,6 +7,7 @@ import { MessageErreur } from "../components/MessageErreur";
 import { SelecteurPromotion } from "../components/SelecteurPromotion";
 import { formaterDateHeure, formaterHeure } from "../format";
 import { TableauPromotion } from "../components/TableauPromotion";
+import { ExercicesEnAttente } from "../components/ExercicesEnAttente";
 
 export default function FormateurPage() {
   const [promotionId, setPromotionId] = useState<number | null>(null);
@@ -128,6 +129,8 @@ export default function FormateurPage() {
             </div>
           )}
           <TableauPromotion promotionId={promotionId} />
+
+          <ExercicesEnAttente promotionId={promotionId} />
         </>
       )}
     </section>
