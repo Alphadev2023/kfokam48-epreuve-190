@@ -1,5 +1,6 @@
 package com.kfokam48.relectures.service;
 
+import com.kfokam48.relectures.domain.NoteRetenue;
 import com.kfokam48.relectures.dto.LigneTableauDto;
 import com.kfokam48.relectures.exception.MetierException;
 import com.kfokam48.relectures.repository.EtudiantRepository;
@@ -11,8 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,25 +46,39 @@ public class TableauService {
         Map<Long, Long> presences = comptes(presenceRepository.compterParEtudiantDeLaPromotion(promotionId));
         Map<Long, Long> exercices = comptes(exerciceRepository.compterParAuteurDeLaPromotion(promotionId));
         Map<Long, Long> enAttente = comptes(relectureRepository.compterEnAttenteParRelecteurDeLaPromotion(promotionId));
-        Map<Long, Double> moyennes = new HashMap<>();
-        for (Object[] ligne : relectureRepository.moyenneRecueParAuteurDeLaPromotion(promotionId)) {
-            moyennes.put((Long) ligne[0], (Double) ligne[1]);
-        }
+        Map<Long, List<NoteRetenue>> notesParAuteur = notesRetenuesParAuteur(promotionId);
 
         return etudiantRepository.findByPromotionIdOrderByNomAsc(promotionId).stream()
-                .map(e -> new LigneTableauDto(
-                        e.getId(),
-                        e.getNom(),
-                        presences.getOrDefault(e.getId(), 0L).intValue(),
-                        exercices.getOrDefault(e.getId(), 0L).intValue(),
-                        arrondir(moyennes.get(e.getId())),
-                        enAttente.getOrDefault(e.getId(), 0L).intValue()))
+                .map(e -> {
+                    List<NoteRetenue> notes = notesParAuteur.getOrDefault(e.getId(), List.of());
+                    Double moyenne = notes.isEmpty()
+                            ? null
+                            : NoteRetenue.arrondir(notes.stream().mapToDouble(NoteRetenue::valeur).average().orElseThrow());
+                    boolean provisoire = notes.stream().anyMatch(NoteRetenue::provisoire);
+                    return new LigneTableauDto(
+                            e.getId(),
+                            e.getNom(),
+                            presences.getOrDefault(e.getId(), 0L).intValue(),
+                            exercices.getOrDefault(e.getId(), 0L).intValue(),
+                            moyenne,
+                            provisoire,
+                            enAttente.getOrDefault(e.getId(), 0L).intValue());
+                })
                 .toList();
     }
 
-    /** RG17 : arrondi a 2 decimales, null si aucune note recue. */
-    static Double arrondir(Double moyenne) {
-        return moyenne == null ? null : BigDecimal.valueOf(moyenne).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    /** RG17 : une note retenue par exercice ayant au moins une relecture rendue (RG21). */
+    private Map<Long, List<NoteRetenue>> notesRetenuesParAuteur(Long promotionId) {
+        Map<Long, List<NoteRetenue>> resultat = new HashMap<>();
+        for (Object[] ligne : relectureRepository.notesRenduesParExerciceDeLaPromotion(promotionId)) {
+            Long auteurId = (Long) ligne[0];
+            int attendus = ((Number) ligne[2]).intValue();
+            Double moyenneExercice = ((Number) ligne[3]).doubleValue();
+            long rendues = ((Number) ligne[4]).longValue();
+            NoteRetenue.depuisAgregat(moyenneExercice, rendues, attendus)
+                    .ifPresent(note -> resultat.computeIfAbsent(auteurId, k -> new ArrayList<>()).add(note));
+        }
+        return resultat;
     }
 
     private static Map<Long, Long> comptes(List<Object[]> lignes) {
