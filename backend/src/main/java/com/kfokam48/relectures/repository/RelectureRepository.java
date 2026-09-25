@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,8 @@ public interface RelectureRepository extends JpaRepository<Relecture, Long> {
     @Query("select r.relecteur.id, count(r) from Relecture r "
             + "where r.exercice.session.id = :sessionId group by r.relecteur.id")
     List<Object[]> compterParRelecteurDansSession(@Param("sessionId") Long sessionId);
+
+    List<Relecture> findByRelecteurId(Long relecteurId);
+
+    List<Relecture> findByExerciceIdIn(Collection<Long> exerciceIds);
 }
