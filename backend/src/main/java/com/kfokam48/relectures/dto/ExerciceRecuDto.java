@@ -1,13 +1,18 @@
 package com.kfokam48.relectures.dto;
 
 import com.kfokam48.relectures.domain.Exercice;
+import com.kfokam48.relectures.domain.Relecture;
 import com.kfokam48.relectures.domain.StatutExercice;
 
+/** RG18 (Q8) : note et commentaire visibles par l'auteur, jamais le nom du relecteur. */
 public record ExerciceRecuDto(Long id, Long sessionId, String sessionTitre, String lien,
                               StatutExercice statut, Integer note, String commentaire) {
 
-    public static ExerciceRecuDto depuis(Exercice exercice) {
+    public static ExerciceRecuDto depuis(Exercice exercice, Relecture relecture) {
+        boolean rendue = relecture != null && relecture.estRendue();
         return new ExerciceRecuDto(exercice.getId(), exercice.getSession().getId(),
-                exercice.getSession().getTitre(), exercice.getLien(), exercice.getStatut(), null, null);
+                exercice.getSession().getTitre(), exercice.getLien(), exercice.getStatut(),
+                rendue ? relecture.getNote() : null,
+                rendue ? relecture.getCommentaire() : null);
     }
 }

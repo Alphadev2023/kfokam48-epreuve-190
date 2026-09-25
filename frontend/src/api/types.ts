@@ -53,3 +53,13 @@ export interface ExerciceRecu {
   note: number | null;
   commentaire: string | null;
 }
+
+export interface RelectureAFaire {
+  id: number;
+  exerciceId: number;
+  sessionTitre: string;
+  lien: string;
+  rendue: boolean;
+  note: number | null;
+  commentaire: string | null;
+}

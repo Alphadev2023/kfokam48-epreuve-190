@@ -124,3 +124,12 @@ button {
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
+
+.form-relecture {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-relecture textarea {
+  width: 100%;
+}

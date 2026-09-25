@@ -89,6 +89,14 @@ public class Exercice {
         statut = StatutExercice.EN_ATTENTE_RELECTURE;
     }
 
+    /** D4 : EN_ATTENTE_RELECTURE vers RELU, etat final. */
+    public void marquerRelu() {
+        if (statut != StatutExercice.EN_ATTENTE_RELECTURE) {
+            throw new IllegalStateException("L'exercice " + id + " n'attend pas de relecture");
+        }
+        statut = StatutExercice.RELU;
+    }
+
     public Long getId() {
         return id;
     }

@@ -60,6 +60,17 @@ public class Relecture {
         return rendueAt != null;
     }
 
+    /** RG15 (Q15) : une relecture rendue est definitive. */
+    public void rendre(int note, String commentaire, Instant maintenant) {
+        if (estRendue()) {
+            throw new IllegalStateException("RG15 : relecture " + id + " deja rendue");
+        }
+        this.note = note;
+        this.commentaire = commentaire;
+        this.rendueAt = maintenant;
+        exercice.marquerRelu();
+    }
+
     public Long getId() {
         return id;
     }
