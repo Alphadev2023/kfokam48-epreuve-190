@@ -2,6 +2,7 @@ import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { IdentiteProvider } from "./identite/IdentiteContext";
 import EtudiantPage from "./pages/EtudiantPage";
 import FormateurPage from "./pages/FormateurPage";
+import RelecteurPage from "./pages/RelecteurPage";
 
 function Accueil() {
   return (
@@ -13,6 +14,9 @@ function Accueil() {
         </li>
         <li>
           <Link to="/etudiant">Étudiant</Link>
+        </li>
+        <li>
+          <Link to="/relecteur">Relecteur</Link>
         </li>
       </ul>
     </section>
@@ -35,6 +39,7 @@ export default function App() {
             <Route path="/" element={<Accueil />} />
             <Route path="/formateur" element={<FormateurPage />} />
             <Route path="/etudiant" element={<EtudiantPage />} />
+            <Route path="/relecteur" element={<RelecteurPage />} />
           </Routes>
         </main>
       </BrowserRouter>
