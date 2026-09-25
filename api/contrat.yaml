@@ -10,6 +10,8 @@ info:
     Seule exception, commune à toutes les opérations : une requête illisible
     (JSON mal formé, paramètre absent ou non numérique) renvoie 400 REQUETE_INVALIDE.
     Les opérations marquées [AJOUT] sont propres à ce projet.
+    Les opérations marquées [NON IMPLÉMENTÉ] sont sorties du périmètre à l'étape 3
+    (CDC section 3, version 2) : elles restent décrites pour une version ultérieure.
 
 servers:
   - url: http://localhost:8080
@@ -41,7 +43,7 @@ paths:
                   code: { type: string }
                   ouvertureAt: { type: string, format: date-time }
                   expirationAt: { type: string, format: date-time }
-        "400": { $ref: "#/components/responses/Erreur" } # CHAMP_MANQUANT, PROMOTION_INCONNUE
+        "400": { $ref: "#/components/responses/Erreur" } # CHAMP_MANQUANT, TITRE_TROP_LONG, PROMOTION_INCONNUE
     get:
       summary: "[AJOUT] Liste des sessions d'une promotion, la plus récente d'abord"
       parameters:
@@ -79,10 +81,23 @@ paths:
         "400": { $ref: "#/components/responses/Erreur" } # CHAMP_MANQUANT, ETUDIANT_INCONNU, ETUDIANT_HORS_PROMOTION
         "404": { $ref: "#/components/responses/Erreur" } # SESSION_INCONNUE
         "409": { $ref: "#/components/responses/Erreur" } # DEJA_PRESENT, SESSION_CLOTUREE
+    get:
+      summary: "[AJOUT] Présences d'une session avec leur source, pour que l'ajout manuel se voie (Q14)"
+      parameters:
+        - $ref: "#/components/parameters/IdChemin"
+      responses:
+        "200":
+          description: Présences triées par nom d'étudiant
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PresenceDetail" }
+        "404": { $ref: "#/components/responses/Erreur" } # SESSION_INCONNUE
 
   /api/sessions/{id}/cloture:
     post:
-      summary: "[AJOUT] Le formateur clôture une session (H1, RG10, RG20)"
+      summary: "[NON IMPLÉMENTÉ, hors périmètre depuis l'étape 3] Le formateur clôture une session (EF10, H1, RG20)"
       parameters:
         - $ref: "#/components/parameters/IdChemin"
       responses:
@@ -147,7 +162,7 @@ paths:
                   sessionId: { type: integer, format: int64 }
                   etudiantId: { type: integer, format: int64 }
                   source: { type: string, enum: [ETUDIANT, FORMATEUR] }
-                "400": { $ref: "#/components/responses/Erreur" } # NOTE_INVALIDE, CHAMP_MANQUANT, COMMENTAIRE_TROP_LONG, RELECTURE_INCONNUE
+        "400": { $ref: "#/components/responses/Erreur" } # CODE_INCONNU, CHAMP_MANQUANT, ETUDIANT_INCONNU, ETUDIANT_HORS_PROMOTION
         "409": { $ref: "#/components/responses/Erreur" } # DEJA_PRESENT
         "410": { $ref: "#/components/responses/Erreur" } # CODE_EXPIRE (également si la session est clôturée, RG4)
 
@@ -155,8 +170,8 @@ paths:
     post:
       summary: "[IMPOSÉ] Un étudiant dépose le lien de son exercice"
       description: |
-        statut vaut EN_ATTENTE_RELECTURE si un relecteur a été tiré,
-        EN_ATTENTE_ATTRIBUTION sinon (RG13, RG14, diagramme D4).
+        statut vaut EN_ATTENTE_RELECTURE si tous les relecteurs attendus ont été tirés,
+        EN_ATTENTE_ATTRIBUTION sinon (RG12, RG13, RG14, diagramme D4).
       requestBody:
         required: true
         content:
@@ -184,7 +199,7 @@ paths:
 
   /api/exercices/{id}:
     put:
-      summary: "[AJOUT] L'auteur remplace le lien de son exercice (Q13, RG10, RG16)"
+      summary: "[NON IMPLÉMENTÉ, hors périmètre depuis l'étape 3] L'auteur remplace le lien de son exercice (EF11, Q13, RG16)"
       parameters:
         - $ref: "#/components/parameters/IdChemin"
         - $ref: "#/components/parameters/EtudiantIdObligatoire"
@@ -234,7 +249,7 @@ paths:
                 commentaire: { type: string }
       responses:
         "200": { description: Relecture enregistrée }
-        "400": { $ref: "#/components/responses/Erreur" } # NOTE_INVALIDE, CHAMP_MANQUANT, RELECTURE_INCONNUE
+        "400": { $ref: "#/components/responses/Erreur" } # NOTE_INVALIDE, CHAMP_MANQUANT, COMMENTAIRE_TROP_LONG, RELECTURE_INCONNUE
         "403": { $ref: "#/components/responses/Erreur" } # AUTO_RELECTURE, RELECTEUR_NON_ATTRIBUE
         "409": { $ref: "#/components/responses/Erreur" } # RELECTURE_DEJA_RENDUE
 
@@ -255,7 +270,7 @@ paths:
 
   /api/etudiants/{id}/exercices:
     get:
-      summary: "[AJOUT] Les exercices d'un étudiant, avec la note et le commentaire reçus, sans le relecteur (Q8, RG18)"
+      summary: "[AJOUT] Les exercices d'un étudiant, avec la note retenue et les commentaires, sans les relecteurs (Q8, RG18, RG21)"
       parameters:
         - $ref: "#/components/parameters/IdChemin"
       responses:
@@ -395,6 +410,14 @@ components:
         sessionId: { type: integer, format: int64 }
         etudiantId: { type: integer, format: int64 }
         source: { type: string, enum: [ETUDIANT, FORMATEUR] }
+    PresenceDetail:
+      type: object
+      required: [etudiantId, nom, source, marqueeAt]
+      properties:
+        etudiantId: { type: integer, format: int64 }
+        nom: { type: string }
+        source: { type: string, enum: [ETUDIANT, FORMATEUR] }
+        marqueeAt: { type: string, format: date-time }
     StatutExercice:
       type: string
       enum: [EN_ATTENTE_ATTRIBUTION, EN_ATTENTE_RELECTURE, RELU]
@@ -409,64 +432,64 @@ components:
         rendue: { type: boolean }
         note: { type: integer, nullable: true }
         commentaire: { type: string, nullable: true }
-      ExerciceRecu:
-        type: object
-        description: |
-          Étape 3 (RG21) : la note est la note retenue, moyenne des relectures rendues,
-          arrondie à 2 décimales. Aucun nom de relecteur (RG18).
-        required:
-          [
-            id,
-            sessionId,
-            sessionTitre,
-            lien,
-            statut,
-            noteProvisoire,
-            commentaires,
-          ]
-        properties:
-          id: { type: integer, format: int64 }
-          sessionId: { type: integer, format: int64 }
-          sessionTitre: { type: string }
-          lien: { type: string, format: uri }
-          statut: { $ref: "#/components/schemas/StatutExercice" }
-          note: { type: number, nullable: true }
-          noteProvisoire: { type: boolean }
-          commentaires:
-            type: array
-            items: { type: string }
-      ExerciceEnAttente:
-        type: object
-        description: |
-          EF8 (Q11). Visible du formateur uniquement : les noms des relecteurs
-          n'apparaissent jamais côté étudiant (RG18). Étape 3 : jusqu'à deux relecteurs.
-        required:
-          [
-            exerciceId,
-            sessionId,
-            sessionTitre,
-            auteurId,
-            auteurNom,
-            statut,
-            relecteursAttendus,
-            relecteurs,
-          ]
-        properties:
-          exerciceId: { type: integer, format: int64 }
-          sessionId: { type: integer, format: int64 }
-          sessionTitre: { type: string }
-          auteurId: { type: integer, format: int64 }
-          auteurNom: { type: string }
-          statut: { $ref: "#/components/schemas/StatutExercice" }
-          relecteursAttendus: { type: integer }
-          relecteurs:
-            type: array
-            items:
-              type: object
-              required: [nom, rendue]
-              properties:
-                nom: { type: string }
-                rendue: { type: boolean }
+    ExerciceRecu:
+      type: object
+      description: |
+        Étape 3 (RG21) : la note est la note retenue, moyenne des relectures rendues,
+        arrondie à 2 décimales. Aucun nom de relecteur (RG18).
+      required:
+        [
+          id,
+          sessionId,
+          sessionTitre,
+          lien,
+          statut,
+          noteProvisoire,
+          commentaires,
+        ]
+      properties:
+        id: { type: integer, format: int64 }
+        sessionId: { type: integer, format: int64 }
+        sessionTitre: { type: string }
+        lien: { type: string, format: uri }
+        statut: { $ref: "#/components/schemas/StatutExercice" }
+        note: { type: number, nullable: true }
+        noteProvisoire: { type: boolean }
+        commentaires:
+          type: array
+          items: { type: string }
+    ExerciceEnAttente:
+      type: object
+      description: |
+        EF8 (Q11). Visible du formateur uniquement : les noms des relecteurs
+        n'apparaissent jamais côté étudiant (RG18). Étape 3 : jusqu'à deux relecteurs.
+      required:
+        [
+          exerciceId,
+          sessionId,
+          sessionTitre,
+          auteurId,
+          auteurNom,
+          statut,
+          relecteursAttendus,
+          relecteurs,
+        ]
+      properties:
+        exerciceId: { type: integer, format: int64 }
+        sessionId: { type: integer, format: int64 }
+        sessionTitre: { type: string }
+        auteurId: { type: integer, format: int64 }
+        auteurNom: { type: string }
+        statut: { $ref: "#/components/schemas/StatutExercice" }
+        relecteursAttendus: { type: integer }
+        relecteurs:
+          type: array
+          items:
+            type: object
+            required: [nom, rendue]
+            properties:
+              nom: { type: string }
+              rendue: { type: boolean }
 
   responses:
     Erreur:
