@@ -1,10 +1,12 @@
 package com.kfokam48.relectures.service;
 
+import com.kfokam48.relectures.domain.Exercice;
 import com.kfokam48.relectures.domain.Relecture;
 import com.kfokam48.relectures.dto.RelectureAFaireDto;
 import com.kfokam48.relectures.dto.RelectureRequete;
 import com.kfokam48.relectures.exception.MetierException;
 import com.kfokam48.relectures.repository.EtudiantRepository;
+import com.kfokam48.relectures.repository.ExerciceRepository;
 import com.kfokam48.relectures.repository.RelectureRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,12 +21,14 @@ import java.util.List;
 public class RelectureService {
 
     private final RelectureRepository relectureRepository;
+    private final ExerciceRepository exerciceRepository;
     private final EtudiantRepository etudiantRepository;
     private final Clock horloge;
 
-    public RelectureService(RelectureRepository relectureRepository, EtudiantRepository etudiantRepository,
-                            Clock horloge) {
+    public RelectureService(RelectureRepository relectureRepository, ExerciceRepository exerciceRepository,
+                            EtudiantRepository etudiantRepository, Clock horloge) {
         this.relectureRepository = relectureRepository;
+        this.exerciceRepository = exerciceRepository;
         this.etudiantRepository = etudiantRepository;
         this.horloge = horloge;
     }
@@ -35,11 +39,13 @@ public class RelectureService {
      */
     @Transactional
     public void rendre(Long relectureId, RelectureRequete requete, Long appelantId) {
-        // H12 : le contrat de cette operation imposee ne prevoit pas de 404
-        Relecture relecture = relectureRepository.findById(relectureId)
+        // ENF8 : verrous dans un ordre fixe, relecture puis exercice
+        Relecture relecture = relectureRepository.findByIdAvecVerrou(relectureId)
+                .orElseThrow(() -> new MetierException(HttpStatus.BAD_REQUEST, "RELECTURE_INCONNUE"));
+        Exercice exercice = exerciceRepository.findByIdAvecVerrou(relecture.getExercice().getId())
                 .orElseThrow(() -> new MetierException(HttpStatus.BAD_REQUEST, "RELECTURE_INCONNUE"));
 
-        Long auteurId = relecture.getExercice().getAuteur().getId();
+        Long auteurId = exercice.getAuteur().getId();
         Long relecteurId = relecture.getRelecteur().getId();
 
         // RG2 : controle de l'appelant, puis controle defensif de l'attribution
@@ -59,6 +65,9 @@ public class RelectureService {
         }
 
         relecture.rendre(requete.note(), requete.commentaire().trim(), Instant.now(horloge));
+
+        // RG21, D4 : RELU quand toutes les relectures attendues sont rendues
+        exercice.relecturesRendues(relectureRepository.countByExerciceIdAndRendueAtIsNotNull(exercice.getId()));
     }
 
     /** Relectures attribuees a un etudiant, celles en attente d'abord. */

@@ -14,11 +14,14 @@ import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 
-/** EF5 : attribution automatique du relecteur (RG12, RG13, RG14, diagramme D4). */
+/** EF5 (v2) : attribution automatique de deux relecteurs distincts (RG12, RG13, RG14, D4). */
 @Service
 public class AttributionService {
 
@@ -39,18 +42,41 @@ public class AttributionService {
         this.horloge = horloge;
     }
 
-    /** Au depot : tire un relecteur, ou laisse l'exercice EN_ATTENTE_ATTRIBUTION s'il n'y a aucun candidat. */
+    /**
+     * Tire les relecteurs manquants de l'exercice, autant que les presents le permettent.
+     * S'il en manque encore, l'exercice reste EN_ATTENTE_ATTRIBUTION (RG14).
+     */
     @Transactional
     public void attribuer(Exercice exercice) {
+        List<Long> dejaAttribues = relectureRepository.findRelecteurIdsByExerciceId(exercice.getId());
+        int manquants = exercice.getRelecteursAttendus() - dejaAttribues.size();
+        if (manquants <= 0) {
+            return;
+        }
+
         Long sessionId = exercice.getSession().getId();
         List<Long> presents = presenceRepository.findEtudiantIdsBySessionId(sessionId);
+        Map<Long, Long> charges = chargesDansLaSession(sessionId);
+        Set<Long> exclus = new HashSet<>(dejaAttribues);
+        Instant maintenant = Instant.now(horloge);
 
-        TirageRelecteur.choisir(exercice.getAuteur().getId(), presents, chargesDansLaSession(sessionId), aleatoire)
-                .ifPresent(relecteurId -> relectureRepository.save(Relecture.attribuer(
-                        exercice, etudiantRepository.getReferenceById(relecteurId), Instant.now(horloge))));
+        for (int i = 0; i < manquants; i++) {
+            Optional<Long> choix = TirageRelecteur.choisir(
+                    exercice.getAuteur().getId(), exclus, presents, charges, aleatoire);
+            if (choix.isEmpty()) {
+                break;
+            }
+            Long relecteurId = choix.get();
+            relectureRepository.save(Relecture.attribuer(
+                    exercice, etudiantRepository.getReferenceById(relecteurId), maintenant));
+            exclus.add(relecteurId);
+            charges.merge(relecteurId, 1L, Long::sum);
+        }
+
+        exercice.relecteursAttribues(exclus.size());
     }
 
-    /** RG14 : a chaque nouvelle presence, on retente l'attribution des exercices en attente de la session. */
+    /** RG14 : a chaque nouvelle presence, on complete les exercices encore en attente de relecteurs. */
     @Transactional
     public void attribuerExercicesEnAttente(Long sessionId) {
         for (Exercice exercice : exerciceRepository.findBySessionIdAndStatut(sessionId, StatutExercice.EN_ATTENTE_ATTRIBUTION)) {

@@ -83,12 +83,12 @@ public class ExerciceService {
             throw new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU");
         }
         List<Exercice> exercices = exerciceRepository.findByAuteurIdOrderByDeposeAtDesc(etudiantId);
-        Map<Long, Relecture> relectureParExercice = relectureRepository
+        Map<Long, List<Relecture>> relecturesParExercice = relectureRepository
                 .findByExerciceIdIn(exercices.stream().map(Exercice::getId).toList()).stream()
-                .collect(Collectors.toMap(r -> r.getExercice().getId(), Function.identity()));
+                .collect(Collectors.groupingBy(r -> r.getExercice().getId()));
 
         return exercices.stream()
-                .map(e -> ExerciceRecuDto.depuis(e, relectureParExercice.get(e.getId())))
+                .map(e -> ExerciceRecuDto.depuis(e, relecturesParExercice.getOrDefault(e.getId(), List.of())))
                 .toList();
     }
 }

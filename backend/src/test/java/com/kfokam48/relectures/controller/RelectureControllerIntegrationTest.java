@@ -58,20 +58,26 @@ class RelectureControllerIntegrationTest {
 
     private Etudiant auteur;
     private Etudiant relecteur;
+    private Etudiant second;
     private Etudiant intrus;
     private Exercice exercice;
     private Relecture relecture;
+    private Relecture relectureDuSecond;
 
+    /** RG12 (v2) : l'exercice a deux relecteurs, relecteur et second. */
     @BeforeEach
     void preparer() {
         Promotion promo = promotionRepository.save(new Promotion("Promo relecture"));
         auteur = etudiantRepository.save(new Etudiant("Auteur Aminata", promo));
         relecteur = etudiantRepository.save(new Etudiant("Relecteur Brice", promo));
-        intrus = etudiantRepository.save(new Etudiant("Intrus Carine", promo));
+        second = etudiantRepository.save(new Etudiant("Second Carine", promo));
+        intrus = etudiantRepository.save(new Etudiant("Intrus Djomo", promo));
         SessionCours session = sessionRepository.save(SessionCours.ouvrir("Seance relecture", promo, "RELEC2",
                 Instant.now(), Duration.ofMinutes(15)));
         exercice = exerciceRepository.save(Exercice.deposer(session, auteur, "https://github.com/auteur/tp", Instant.now()));
         relecture = relectureRepository.save(Relecture.attribuer(exercice, relecteur, Instant.now()));
+        relectureDuSecond = relectureRepository.save(Relecture.attribuer(exercice, second, Instant.now()));
+        exercice.relecteursAttribues(2);
     }
 
     private ResultActions rendre(Long relectureId, String note, Long appelantId) throws Exception {
@@ -85,18 +91,26 @@ class RelectureControllerIntegrationTest {
     }
 
     @Test
-    void casNominal_200_exerciceReluEtNoteVisibleParLAuteurSansLeRelecteur() throws Exception {
+    void premiereRelecture_200_exerciceResteEnAttenteDeLaSeconde() throws Exception {
         rendre(relecture.getId(), "15", relecteur.getId()).andExpect(status().isOk());
 
         assertThat(exerciceRepository.findById(exercice.getId()).orElseThrow().getStatut())
-                .isEqualTo(StatutExercice.RELU);
+                .isEqualTo(StatutExercice.EN_ATTENTE_RELECTURE);
 
         mockMvc.perform(get("/api/etudiants/{id}/exercices", auteur.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].note").value(15))
-                .andExpect(jsonPath("$[0].commentaire").value("Bon travail, tests a completer."))
                 .andExpect(jsonPath("$[0].relecteurNom").doesNotExist())
                 .andExpect(jsonPath("$[0].relecteurId").doesNotExist());
+    }
+
+    @Test
+    void rg21_lesDeuxRelecturesRendues_exerciceRelu() throws Exception {
+        rendre(relecture.getId(), "13", relecteur.getId()).andExpect(status().isOk());
+        rendre(relectureDuSecond.getId(), "16", second.getId()).andExpect(status().isOk());
+
+        assertThat(exerciceRepository.findById(exercice.getId()).orElseThrow().getStatut())
+                .isEqualTo(StatutExercice.RELU);
     }
 
     @Test
@@ -128,7 +142,7 @@ class RelectureControllerIntegrationTest {
     }
 
     @Test
-    void unAutreEtudiantQueLeRelecteur_403() throws Exception {
+    void unEtudiantQuiNEstPasCeRelecteur_403() throws Exception {
         rendre(relecture.getId(), "10", intrus.getId())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("RELECTEUR_NON_ATTRIBUE"));

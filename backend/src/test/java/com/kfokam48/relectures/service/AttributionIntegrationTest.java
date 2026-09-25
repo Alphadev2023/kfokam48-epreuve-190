@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -64,6 +65,7 @@ class AttributionIntegrationTest {
     private Etudiant auteur;
     private Etudiant camarade;
     private Etudiant troisieme;
+    private Etudiant quatrieme;
     private SessionCours session;
 
     @BeforeEach
@@ -72,6 +74,7 @@ class AttributionIntegrationTest {
         auteur = etudiantRepository.save(new Etudiant("Auteur Aminata", promo));
         camarade = etudiantRepository.save(new Etudiant("Camarade Brice", promo));
         troisieme = etudiantRepository.save(new Etudiant("Troisieme Carine", promo));
+        quatrieme = etudiantRepository.save(new Etudiant("Quatrieme Djomo", promo));
         session = sessionRepository.save(SessionCours.ouvrir("Seance attribution", promo, "ATTRB2",
                 Instant.now(), Duration.ofMinutes(15)));
         presenceRepository.save(Presence.parEtudiant(session, auteur, Instant.now()));
@@ -87,27 +90,43 @@ class AttributionIntegrationTest {
         return objectMapper.readTree(reponse).get("id").asLong();
     }
 
+    private void marquerPresence(Etudiant etudiant) throws Exception {
+        mockMvc.perform(post("/api/presences")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"ATTRB2\",\"etudiantId\":" + etudiant.getId() + "}"))
+                .andExpect(status().isCreated());
+    }
+
+    private List<Long> relecteursDe(Long exerciceId) {
+        return relectureRepository.findByExerciceId(exerciceId).stream()
+                .map(Relecture::getRelecteur)
+                .map(Etudiant::getId)
+                .toList();
+    }
+
     @Test
-    void rg14_seulPresent_puisUnCamaradeArrive_ilDevientLeRelecteur() throws Exception {
+    void rg14_seulPresent_puisLesRelecteursSontCompletesUnParUnAChaqueArrivee() throws Exception {
         Long exerciceId = deposer(auteur);
+        assertThat(relecteursDe(exerciceId)).isEmpty();
         assertThat(exerciceRepository.findById(exerciceId).orElseThrow().getStatut())
                 .isEqualTo(StatutExercice.EN_ATTENTE_ATTRIBUTION);
 
-        mockMvc.perform(post("/api/presences")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"code\":\"ATTRB2\",\"etudiantId\":" + camarade.getId() + "}"))
-                .andExpect(status().isCreated());
+        marquerPresence(camarade);
+        assertThat(relecteursDe(exerciceId)).containsExactly(camarade.getId());
+        assertThat(exerciceRepository.findById(exerciceId).orElseThrow().getStatut())
+                .isEqualTo(StatutExercice.EN_ATTENTE_ATTRIBUTION);
 
-        Relecture relecture = relectureRepository.findByExerciceId(exerciceId).orElseThrow();
-        assertThat(relecture.getRelecteur().getId()).isEqualTo(camarade.getId());
+        marquerPresence(troisieme);
+        assertThat(relecteursDe(exerciceId)).containsExactlyInAnyOrder(camarade.getId(), troisieme.getId());
         assertThat(exerciceRepository.findById(exerciceId).orElseThrow().getStatut())
                 .isEqualTo(StatutExercice.EN_ATTENTE_RELECTURE);
     }
 
     @Test
-    void rg2_rg13_avecDAutresPresents_unRelecteurDifferentDeLAuteurEstTireAuDepot() throws Exception {
+    void rg12_rg2_avecTroisAutresPresents_deuxRelecteursDistinctsHorsAuteurSontTiresAuDepot() throws Exception {
         presenceRepository.save(Presence.parEtudiant(session, camarade, Instant.now()));
         presenceRepository.save(Presence.parEtudiant(session, troisieme, Instant.now()));
+        presenceRepository.save(Presence.parEtudiant(session, quatrieme, Instant.now()));
 
         mockMvc.perform(post("/api/exercices")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,9 +136,11 @@ class AttributionIntegrationTest {
                 .andExpect(jsonPath("$.statut").value("EN_ATTENTE_RELECTURE"));
 
         Long exerciceId = exerciceRepository.findByAuteurIdOrderByDeposeAtDesc(auteur.getId()).get(0).getId();
-        Relecture relecture = relectureRepository.findByExerciceId(exerciceId).orElseThrow();
-        assertThat(relecture.getRelecteur().getId())
-                .isNotEqualTo(auteur.getId())
-                .isIn(camarade.getId(), troisieme.getId());
+        List<Long> relecteurs = relecteursDe(exerciceId);
+        assertThat(relecteurs)
+                .hasSize(2)
+                .doesNotHaveDuplicates()
+                .doesNotContain(auteur.getId())
+                .isSubsetOf(camarade.getId(), troisieme.getId(), quatrieme.getId());
     }
 }

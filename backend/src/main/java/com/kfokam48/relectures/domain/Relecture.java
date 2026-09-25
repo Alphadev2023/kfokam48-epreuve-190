@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -21,8 +20,9 @@ public class Relecture {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "exercice_id", nullable = false, unique = true)
+    /** RG12 (v2) : un exercice a plusieurs relectures, une par relecteur distinct. */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "exercice_id", nullable = false)
     private Exercice exercice;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,21 +43,16 @@ public class Relecture {
     protected Relecture() {
     }
 
-    /** RG2 : garde defensive, le tirage exclut deja l'auteur. RG12 : un seul relecteur par exercice. */
+    /** RG2 : garde defensive, le tirage exclut deja l'auteur. */
     public static Relecture attribuer(Exercice exercice, Etudiant relecteur, Instant maintenant) {
         if (relecteur.getId().equals(exercice.getAuteur().getId())) {
             throw new IllegalStateException("RG2 : un etudiant ne peut pas relire son propre exercice");
         }
-        exercice.relecteurAttribue();
         Relecture relecture = new Relecture();
         relecture.exercice = exercice;
         relecture.relecteur = relecteur;
         relecture.attribueeAt = maintenant;
         return relecture;
-    }
-
-    public boolean estRendue() {
-        return rendueAt != null;
     }
 
     /** RG15 (Q15) : une relecture rendue est definitive. */
@@ -68,7 +63,10 @@ public class Relecture {
         this.note = note;
         this.commentaire = commentaire;
         this.rendueAt = maintenant;
-        exercice.marquerRelu();
+    }
+
+    public boolean estRendue() {
+        return rendueAt != null;
     }
 
     public Long getId() {
