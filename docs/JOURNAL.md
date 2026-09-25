@@ -14,3 +14,4 @@
 - le contrat est validé sur editor.swagger.io ;
 - les diagrammes s'affichent dans l'aperçu GitHub ;
 - chaque titre d'issue est relu en me demandant si le client le comprendrait.
+  | 1.1 | 25/09/2026, issue #5 | Ajout de H17 : exposition des codes par GET /api/sessions, découverte en construisant l'écran étudiant |
