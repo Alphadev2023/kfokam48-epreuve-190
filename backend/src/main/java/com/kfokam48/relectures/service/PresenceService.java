@@ -24,13 +24,16 @@ public class PresenceService {
     private final SessionRepository sessionRepository;
     private final EtudiantRepository etudiantRepository;
     private final PresenceRepository presenceRepository;
+    private final AttributionService attributionService;
     private final Clock horloge;
 
     public PresenceService(SessionRepository sessionRepository, EtudiantRepository etudiantRepository,
-                           PresenceRepository presenceRepository, Clock horloge) {
+                           PresenceRepository presenceRepository, AttributionService attributionService,
+                           Clock horloge) {
         this.sessionRepository = sessionRepository;
         this.etudiantRepository = etudiantRepository;
         this.presenceRepository = presenceRepository;
+        this.attributionService = attributionService;
         this.horloge = horloge;
     }
 
@@ -64,7 +67,7 @@ public class PresenceService {
 
         Presence presence = presenceRepository.save(Presence.parEtudiant(session, etudiant, maintenant));
 
-        // RG14 : l'attribution des exercices en attente sera branchee ici par l'issue #6 (voir D3)
+        attributionService.attribuerExercicesEnAttente(session.getId()); // RG14, D3
         return PresenceDto.depuis(presence);
     }
 }
