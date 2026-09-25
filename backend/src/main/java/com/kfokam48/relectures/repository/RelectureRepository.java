@@ -50,4 +50,8 @@ public interface RelectureRepository extends JpaRepository<Relecture, Long> {
             + "where r.relecteur.promotion.id = :promotionId and r.rendueAt is null "
             + "group by r.relecteur.id")
     List<Object[]> compterEnAttenteParRelecteurDeLaPromotion(@Param("promotionId") Long promotionId);
+
+    /** EF8 : relectures avec leur relecteur charge en une seule requete. */
+    @Query("select r from Relecture r join fetch r.relecteur where r.exercice.id in :exerciceIds")
+    List<Relecture> findAvecRelecteurByExerciceIdIn(@Param("exerciceIds") Collection<Long> exerciceIds);
 }

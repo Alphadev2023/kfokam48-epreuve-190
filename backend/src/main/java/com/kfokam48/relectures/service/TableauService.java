@@ -11,6 +11,14 @@ import com.kfokam48.relectures.repository.RelectureRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.kfokam48.relectures.domain.Exercice;
+import com.kfokam48.relectures.domain.Relecture;
+import com.kfokam48.relectures.domain.StatutExercice;
+import com.kfokam48.relectures.dto.ExerciceEnAttenteDto;
+import com.kfokam48.relectures.dto.RelecteurSuiviDto;
+
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,5 +95,36 @@ public class TableauService {
             resultat.put((Long) ligne[0], (Long) ligne[1]);
         }
         return resultat;
+    }
+
+    /** EF8 (Q11) : exercices dont toutes les relectures attendues ne sont pas rendues. */
+    @Transactional(readOnly = true)
+    public List<ExerciceEnAttenteDto> exercicesEnAttente(Long promotionId) {
+        if (!promotionRepository.existsById(promotionId)) {
+            throw new MetierException(HttpStatus.NOT_FOUND, "PROMOTION_INCONNUE");
+        }
+        List<Exercice> exercices = exerciceRepository.findNonRelusDeLaPromotion(promotionId, StatutExercice.RELU);
+        if (exercices.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, List<Relecture>> relecturesParExercice = relectureRepository
+                .findAvecRelecteurByExerciceIdIn(exercices.stream().map(Exercice::getId).toList()).stream()
+                .collect(Collectors.groupingBy(r -> r.getExercice().getId()));
+
+        return exercices.stream()
+                .map(e -> new ExerciceEnAttenteDto(
+                        e.getId(),
+                        e.getSession().getId(),
+                        e.getSession().getTitre(),
+                        e.getAuteur().getId(),
+                        e.getAuteur().getNom(),
+                        e.getStatut(),
+                        e.getRelecteursAttendus(),
+                        relecturesParExercice.getOrDefault(e.getId(), List.of()).stream()
+                                .sorted(Comparator.comparing(Relecture::getAttribueeAt))
+                                .map(r -> new RelecteurSuiviDto(r.getRelecteur().getNom(), r.estRendue()))
+                                .toList()))
+                .toList();
     }
 }

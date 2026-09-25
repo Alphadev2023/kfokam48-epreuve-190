@@ -1,5 +1,6 @@
 package com.kfokam48.relectures.controller;
 
+import com.kfokam48.relectures.dto.ExerciceEnAttenteDto;
 import com.kfokam48.relectures.dto.LigneTableauDto;
 import com.kfokam48.relectures.service.TableauService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,5 +24,11 @@ public class TableauController {
     @GetMapping
     public List<LigneTableauDto> tableau(@RequestParam Long promotionId) {
         return tableauService.tableau(promotionId);
+    }
+
+    /** [AJOUT] EF8 (Q11) : exercices encore en attente, les plus anciens d'abord. */
+    @GetMapping("/exercices-en-attente")
+    public List<ExerciceEnAttenteDto> exercicesEnAttente(@RequestParam Long promotionId) {
+        return tableauService.exercicesEnAttente(promotionId);
     }
 }

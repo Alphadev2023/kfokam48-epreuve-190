@@ -28,4 +28,10 @@ public interface ExerciceRepository extends JpaRepository<Exercice, Long> {
     @Query("select e.auteur.id, count(e) from Exercice e "
             + "where e.auteur.promotion.id = :promotionId group by e.auteur.id")
     List<Object[]> compterParAuteurDeLaPromotion(@Param("promotionId") Long promotionId);
+
+    /** EF8 : exercices de la promotion pas encore RELU, les plus anciens d'abord. */
+    @Query("select e from Exercice e join fetch e.session join fetch e.auteur a "
+            + "where a.promotion.id = :promotionId and e.statut <> :relu order by e.deposeAt asc")
+    List<Exercice> findNonRelusDeLaPromotion(@Param("promotionId") Long promotionId,
+                                             @Param("relu") StatutExercice relu);
 }
