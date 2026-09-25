@@ -138,3 +138,13 @@ button {
   color: #b00020;
   font-weight: bold;
 }
+
+.provisoire {
+  font-style: italic;
+  color: #8a5a00;
+}
+
+.commentaires {
+  margin: 0.25rem 0 0;
+  padding-left: 1.2rem;
+}

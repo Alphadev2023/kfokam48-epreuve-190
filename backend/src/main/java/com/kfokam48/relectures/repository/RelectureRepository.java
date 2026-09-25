@@ -35,11 +35,15 @@ public interface RelectureRepository extends JpaRepository<Relecture, Long> {
             + "where r.exercice.session.id = :sessionId group by r.relecteur.id")
     List<Object[]> compterParRelecteurDansSession(@Param("sessionId") Long sessionId);
 
-    /** EF7, RG17 : moyenne des notes recues, relectures rendues seulement. */
-    @Query("select r.exercice.auteur.id, avg(r.note) from Relecture r "
-            + "where r.exercice.auteur.promotion.id = :promotionId and r.rendueAt is not null "
-            + "group by r.exercice.auteur.id")
-    List<Object[]> moyenneRecueParAuteurDeLaPromotion(@Param("promotionId") Long promotionId);
+    /**
+     * RG17, RG21 : pour chaque exercice note de la promotion, auteur, exercice, relecteurs attendus,
+     * moyenne des notes rendues et nombre de relectures rendues. Une seule requete pour tout le tableau (ENF2).
+     */
+    @Query("select e.auteur.id, e.id, e.relecteursAttendus, avg(r.note), count(r) "
+            + "from Relecture r join r.exercice e "
+            + "where e.auteur.promotion.id = :promotionId and r.rendueAt is not null "
+            + "group by e.auteur.id, e.id, e.relecteursAttendus")
+    List<Object[]> notesRenduesParExerciceDeLaPromotion(@Param("promotionId") Long promotionId);
 
     /** EF7 : relectures attribuees et pas encore rendues, par relecteur. */
     @Query("select r.relecteur.id, count(r) from Relecture r "
