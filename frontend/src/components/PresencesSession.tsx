@@ -90,30 +90,36 @@ export function PresencesSession({ session, promotionId, onFermer }: Props) {
             ))}
           </ul>
 
-          <h4>Ajouter une présence à la main</h4>
-          <div className="form-depot">
-            <select
-              value={etudiantChoisi ?? ""}
-              onChange={(e) => setEtudiantChoisi(Number(e.target.value))}
-            >
-              <option value="" disabled>
-                Choisir un étudiant absent
-              </option>
-              {absents.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.nom}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              disabled={envoiEnCours || etudiantChoisi === null}
-              onClick={ajouter}
-            >
-              {envoiEnCours ? "Ajout..." : "Ajouter la présence"}
-            </button>
-            {erreurAjout !== null && <MessageErreur erreur={erreurAjout} />}
-          </div>
+          {session.statut === "CLOTUREE" ? (
+            <p>Séance clôturée : plus aucune présence ne peut être ajoutée.</p>
+          ) : (
+            <>
+              <h4>Ajouter une présence à la main</h4>
+              <div className="form-depot">
+                <select
+                  value={etudiantChoisi ?? ""}
+                  onChange={(e) => setEtudiantChoisi(Number(e.target.value))}
+                >
+                  <option value="" disabled>
+                    Choisir un étudiant absent
+                  </option>
+                  {absents.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.nom}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={envoiEnCours || etudiantChoisi === null}
+                  onClick={ajouter}
+                >
+                  {envoiEnCours ? "Ajout..." : "Ajouter la présence"}
+                </button>
+                {erreurAjout !== null && <MessageErreur erreur={erreurAjout} />}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

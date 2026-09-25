@@ -9,6 +9,7 @@ import { PresencesSession } from "../components/PresencesSession";
 import { SelecteurPromotion } from "../components/SelecteurPromotion";
 import { TableauPromotion } from "../components/TableauPromotion";
 import { formaterDateHeure, formaterHeure } from "../format";
+import { cloturerSession } from "../api/sessions";
 
 export default function FormateurPage() {
   const [promotionId, setPromotionId] = useState<number | null>(null);
@@ -25,6 +26,24 @@ export default function FormateurPage() {
 
   // EF9 (Q14) : séance dont on affiche les présences
   const [sessionSuivie, setSessionSuivie] = useState<Session | null>(null);
+  const [erreurCloture, setErreurCloture] = useState<unknown>(null);
+
+  async function cloturer(s: Session) {
+    if (
+      !window.confirm(
+        `Clôturer « ${s.titre} » ? Plus aucune présence ni aucun dépôt ne sera accepté.`,
+      )
+    )
+      return;
+    setErreurCloture(null);
+    try {
+      await cloturerSession(s.id);
+      if (sessionSuivie?.id === s.id) setSessionSuivie(null);
+      if (promotionId !== null) chargerSessions(promotionId);
+    } catch (err) {
+      setErreurCloture(err);
+    }
+  }
 
   const chargerSessions = useCallback((id: number) => {
     setSessions(null);
@@ -127,7 +146,17 @@ export default function FormateurPage() {
                       <td>{formaterDateHeure(s.ouvertureAt)}</td>
                       <td>{s.code}</td>
                       <td>{formaterDateHeure(s.expirationAt)}</td>
-                      <td>{s.statut === "OUVERTE" ? "Ouverte" : "Clôturée"}</td>
+                      <td>
+                        {s.statut === "OUVERTE" ? "Ouverte" : "Clôturée"}
+                        {s.statut === "OUVERTE" && (
+                          <>
+                            {" "}
+                            <button type="button" onClick={() => cloturer(s)}>
+                              Clôturer
+                            </button>
+                          </>
+                        )}
+                      </td>
                       <td>
                         <button
                           type="button"
@@ -142,6 +171,8 @@ export default function FormateurPage() {
               </table>
             </div>
           )}
+
+          {erreurCloture !== null && <MessageErreur erreur={erreurCloture} />}
 
           {sessionSuivie && (
             <PresencesSession

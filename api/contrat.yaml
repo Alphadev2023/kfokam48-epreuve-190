@@ -97,7 +97,7 @@ paths:
 
   /api/sessions/{id}/cloture:
     post:
-      summary: "[NON IMPLÉMENTÉ, hors périmètre depuis l'étape 3] Le formateur clôture une session (EF10, H1, RG20)"
+      summary: "[AJOUT] Le formateur clôture une session : plus de présence ni de dépôt, relectures toujours possibles (EF10, H1, RG10, RG20)"
       parameters:
         - $ref: "#/components/parameters/IdChemin"
       responses:

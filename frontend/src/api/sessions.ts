@@ -33,3 +33,9 @@ export function ajouterPresence(
 export function listerPresences(sessionId: number): Promise<PresenceDetail[]> {
   return appelApi<PresenceDetail[]>(`/api/sessions/${sessionId}/presences`);
 }
+
+export function cloturerSession(sessionId: number): Promise<Session> {
+  return appelApi<Session>(`/api/sessions/${sessionId}/cloture`, {
+    method: "POST",
+  });
+}

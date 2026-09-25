@@ -74,6 +74,14 @@ public class SessionCours {
     public boolean estCloturee() {
         return statut == StatutSession.CLOTUREE;
     }
+    /** EF10 (H1, RG20) : cloture definitive par le formateur. */
+    public void cloturer(Instant maintenant) {
+        if (statut == StatutSession.CLOTUREE) {
+            throw new IllegalStateException("Session " + id + " deja cloturee");
+        }
+        statut = StatutSession.CLOTUREE;
+        clotureAt = maintenant;
+    }
 
     public Long getId() {
         return id;
