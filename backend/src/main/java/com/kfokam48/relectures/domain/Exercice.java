@@ -103,6 +103,12 @@ public class Exercice {
         }
     }
 
+    /** EF11 (Q13) : les conditions (RG10, RG16) sont verifiees par le service. */
+    public void remplacerLien(String nouveauLien, Instant maintenant) {
+        this.lien = nouveauLien;
+        this.modifieAt = maintenant;
+    }
+
     public Long getId() {
         return id;
     }
