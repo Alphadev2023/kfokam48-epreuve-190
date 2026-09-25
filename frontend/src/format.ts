@@ -13,3 +13,8 @@ export function formaterDateHeure(iso: string): string {
     minute: "2-digit",
   });
 }
+
+/** Affichage seulement : la valeur vient de l'API, elle n'est jamais recalculée (F3). */
+export function formaterNote(note: number): string {
+  return note.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+}

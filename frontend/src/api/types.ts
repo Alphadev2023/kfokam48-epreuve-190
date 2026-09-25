@@ -71,4 +71,16 @@ export interface LigneTableau {
   exercicesDeposes: number;
   moyenne: number | null;
   relecturesEnAttente: number;
+  moyenneProvisoire: boolean;
+}
+
+export interface ExerciceRecu {
+  id: number;
+  sessionId: number;
+  sessionTitre: string;
+  lien: string;
+  statut: StatutExercice;
+  note: number | null;
+  noteProvisoire: boolean;
+  commentaires: string[];
 }

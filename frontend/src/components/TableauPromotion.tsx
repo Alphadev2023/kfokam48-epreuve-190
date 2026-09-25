@@ -3,6 +3,7 @@ import { chargerTableau } from "../api/tableau";
 import type { LigneTableau } from "../api/types";
 import { Chargement } from "./Chargement";
 import { MessageErreur } from "./MessageErreur";
+import { formaterNote } from "../format";
 
 /** F3 : la moyenne affichée est celle de l'API, jamais recalculée ici. */
 export function TableauPromotion({ promotionId }: { promotionId: number }) {
@@ -50,9 +51,10 @@ export function TableauPromotion({ promotionId }: { promotionId: number }) {
                   <td>{l.presences}</td>
                   <td>{l.exercicesDeposes}</td>
                   <td>
-                    {l.moyenne === null
-                      ? "—"
-                      : l.moyenne.toLocaleString("fr-FR")}
+                    {l.moyenne === null ? "—" : formaterNote(l.moyenne)}
+                    {l.moyenne !== null && l.moyenneProvisoire && (
+                      <span className="provisoire"> (provisoire)</span>
+                    )}
                   </td>
                   <td
                     className={l.relecturesEnAttente > 0 ? "alerte" : undefined}

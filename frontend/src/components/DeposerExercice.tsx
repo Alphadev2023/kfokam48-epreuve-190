@@ -5,6 +5,7 @@ import type { ExerciceRecu, Session } from "../api/types";
 import { libelleStatutExercice } from "../libelles";
 import { Chargement } from "./Chargement";
 import { MessageErreur } from "./MessageErreur";
+import { formaterNote } from "../format";
 
 interface Props {
   etudiantId: number;
@@ -84,13 +85,34 @@ export function DeposerExercice({
               <li key={s.id}>
                 <strong>{s.titre}</strong>
                 {exercice ? (
-                  <p>
-                    <a href={exercice.lien} target="_blank" rel="noreferrer">
-                      {exercice.lien}
-                    </a>
-                    <br />
-                    {libelleStatutExercice(exercice.statut)}
-                  </p>
+                  <div>
+                    <p>
+                      <a href={exercice.lien} target="_blank" rel="noreferrer">
+                        {exercice.lien}
+                      </a>
+                      <br />
+                      {libelleStatutExercice(exercice.statut)}
+                    </p>
+                    {exercice.note !== null && (
+                      <p>
+                        Note retenue :{" "}
+                        <strong>{formaterNote(exercice.note)}/20</strong>
+                        {exercice.noteProvisoire && (
+                          <span className="provisoire">
+                            {" "}
+                            (provisoire, en attente d'une seconde relecture)
+                          </span>
+                        )}
+                      </p>
+                    )}
+                    {exercice.commentaires.length > 0 && (
+                      <ul className="commentaires">
+                        {exercice.commentaires.map((commentaire, i) => (
+                          <li key={i}>{commentaire}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 ) : (
                   <div className="form-depot">
                     <input
