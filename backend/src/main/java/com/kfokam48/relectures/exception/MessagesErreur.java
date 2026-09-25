@@ -12,6 +12,7 @@ public final class MessagesErreur {
     private static final Map<String, String> LIBELLES = Map.ofEntries(
             entry("REQUETE_INVALIDE", "La requête est mal formée."),
             entry("CHAMP_MANQUANT", "Un champ obligatoire est manquant."),
+            entry("TITRE_TROP_LONG", "Le titre ne doit pas dépasser 200 caractères."),
             entry("RESSOURCE_INTROUVABLE", "Cette adresse n'existe pas."),
             entry("METHODE_NON_AUTORISEE", "Cette opération n'est pas autorisée sur cette adresse."),
             entry("ERREUR_INTERNE", "Une erreur interne est survenue. Réessayez plus tard."),
