@@ -19,3 +19,17 @@ export interface Session extends SessionOuverte {
   promotionId: number;
   statut: StatutSession;
 }
+
+export interface EtudiantResume {
+  id: number;
+  nom: string;
+}
+
+export type SourcePresence = "ETUDIANT" | "FORMATEUR";
+
+export interface Presence {
+  id: number;
+  sessionId: number;
+  etudiantId: number;
+  source: SourcePresence;
+}
