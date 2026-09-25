@@ -53,4 +53,12 @@ class TirageRelecteurTest {
     void rg14_aucunCandidatSiPersonneNEstPresent() {
         assertThat(TirageRelecteur.choisir(AUTEUR, List.of(), Map.of(), new Random())).isEmpty();
     }
+
+    @Test
+    void rg12_unRelecteurDejaAttribueNEstPasTireUneSecondeFois() {
+        for (int i = 0; i < 200; i++) {
+            Optional<Long> relecteur = TirageRelecteur.choisir(AUTEUR, Set.of(2L), List.of(1L, 2L, 3L), Map.of(), new Random(i));
+            assertThat(relecteur).contains(3L);
+        }
+    }
 }

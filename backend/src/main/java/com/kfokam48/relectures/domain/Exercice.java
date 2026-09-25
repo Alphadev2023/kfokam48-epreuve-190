@@ -24,6 +24,9 @@ public class Exercice {
 
     public static final int LIEN_LONGUEUR_MAX = 500;
 
+    /** RG12 (enveloppe, etape 3) : chaque exercice depose est relu par deux pairs. */
+    public static final int RELECTEURS_PAR_EXERCICE = 2;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,6 +47,10 @@ public class Exercice {
     @Column(nullable = false, length = 30)
     private StatutExercice statut;
 
+    /** RG22 : 1 pour les exercices deposes avant V101, 2 ensuite. */
+    @Column(name = "relecteurs_attendus", nullable = false)
+    private int relecteursAttendus;
+
     @Column(name = "depose_at", nullable = false)
     private Instant deposeAt;
 
@@ -60,6 +67,7 @@ public class Exercice {
         exercice.auteur = auteur;
         exercice.lien = lien;
         exercice.statut = StatutExercice.EN_ATTENTE_ATTRIBUTION;
+        exercice.relecteursAttendus = RELECTEURS_PAR_EXERCICE;
         exercice.deposeAt = maintenant;
         return exercice;
     }
@@ -81,20 +89,18 @@ public class Exercice {
         }
     }
 
-    /** D4 : EN_ATTENTE_ATTRIBUTION vers EN_ATTENTE_RELECTURE. */
-    public void relecteurAttribue() {
-        if (statut != StatutExercice.EN_ATTENTE_ATTRIBUTION) {
-            throw new IllegalStateException("Un relecteur est deja attribue a l'exercice " + id);
+    /** D4 : l'exercice attend ses relectures des qu'il a tous ses relecteurs. */
+    public void relecteursAttribues(int nombre) {
+        if (statut == StatutExercice.EN_ATTENTE_ATTRIBUTION && nombre >= relecteursAttendus) {
+            statut = StatutExercice.EN_ATTENTE_RELECTURE;
         }
-        statut = StatutExercice.EN_ATTENTE_RELECTURE;
     }
 
-    /** D4 : EN_ATTENTE_RELECTURE vers RELU, etat final. */
-    public void marquerRelu() {
-        if (statut != StatutExercice.EN_ATTENTE_RELECTURE) {
-            throw new IllegalStateException("L'exercice " + id + " n'attend pas de relecture");
+    /** D4, RG21 : l'exercice est relu quand toutes les relectures attendues sont rendues. */
+    public void relecturesRendues(long nombre) {
+        if (nombre >= relecteursAttendus) {
+            statut = StatutExercice.RELU;
         }
-        statut = StatutExercice.RELU;
     }
 
     public Long getId() {
@@ -115,6 +121,10 @@ public class Exercice {
 
     public StatutExercice getStatut() {
         return statut;
+    }
+
+    public int getRelecteursAttendus() {
+        return relecteursAttendus;
     }
 
     public Instant getDeposeAt() {
