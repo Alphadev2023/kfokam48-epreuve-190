@@ -52,8 +52,8 @@ erDiagram
         bigint id PK
         bigint exercice_id FK "UK, un seul relecteur, RG12"
         bigint relecteur_id FK "etudiant, different de l'auteur, RG2"
-        smallint note "0 a 20, nul tant que non rendue, RG3"
-        text commentaire "nul tant que non rendue"
+        integer note "0 a 20, nul tant que non rendue, RG3"
+        varchar commentaire "2000, nul tant que non rendue"
         timestamptz attribuee_at "non nul"
         timestamptz rendue_at "nul tant que non rendue, RG15"
     }
