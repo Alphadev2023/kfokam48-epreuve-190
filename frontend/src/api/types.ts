@@ -63,3 +63,12 @@ export interface RelectureAFaire {
   note: number | null;
   commentaire: string | null;
 }
+
+export interface LigneTableau {
+  etudiantId: number;
+  nom: string;
+  presences: number;
+  exercicesDeposes: number;
+  moyenne: number | null;
+  relecturesEnAttente: number;
+}

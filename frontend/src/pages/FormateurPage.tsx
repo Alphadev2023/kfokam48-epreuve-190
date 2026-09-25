@@ -6,6 +6,7 @@ import { Chargement } from "../components/Chargement";
 import { MessageErreur } from "../components/MessageErreur";
 import { SelecteurPromotion } from "../components/SelecteurPromotion";
 import { formaterDateHeure, formaterHeure } from "../format";
+import { TableauPromotion } from "../components/TableauPromotion";
 
 export default function FormateurPage() {
   const [promotionId, setPromotionId] = useState<number | null>(null);
@@ -126,6 +127,7 @@ export default function FormateurPage() {
               </table>
             </div>
           )}
+          <TableauPromotion promotionId={promotionId} />
         </>
       )}
     </section>
