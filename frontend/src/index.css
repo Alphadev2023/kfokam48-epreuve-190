@@ -82,3 +82,26 @@ td {
   text-align: left;
   min-height: 44px;
 }
+
+.form-code {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 320px;
+}
+
+.saisie-code {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 1.8rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+button {
+  min-height: 44px;
+}
+
+.succes {
+  color: #1b5e20;
+  font-weight: bold;
+}
