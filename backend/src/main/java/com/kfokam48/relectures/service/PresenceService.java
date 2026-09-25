@@ -43,7 +43,7 @@ public class PresenceService {
         String code = requete.code().trim().toUpperCase(Locale.ROOT);
 
         // RG19 : le code seul identifie la session
-        SessionCours session = sessionRepository.findByCode(code)
+        SessionCours session = sessionRepository.findByCodeAvecVerrou(code)
                 .orElseThrow(() -> new MetierException(HttpStatus.BAD_REQUEST, "CODE_INCONNU"));
 
         // RG1, RG4 : code expire ou session cloturee

@@ -51,7 +51,7 @@ public class ExerciceService {
     @Transactional
     public ExerciceDeposeDto deposer(ExerciceRequete requete) {
         // H12 : le contrat de POST /api/exercices ne prevoit que 400 et 409
-        SessionCours session = sessionRepository.findById(requete.sessionId())
+        SessionCours session = sessionRepository.findByIdAvecVerrou(requete.sessionId())
                 .orElseThrow(() -> new MetierException(HttpStatus.BAD_REQUEST, "SESSION_INCONNUE"));
         Etudiant auteur = etudiantRepository.findById(requete.etudiantId())
                 .orElseThrow(() -> new MetierException(HttpStatus.BAD_REQUEST, "ETUDIANT_INCONNU"));
