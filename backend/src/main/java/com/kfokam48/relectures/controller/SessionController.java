@@ -58,4 +58,10 @@ public class SessionController {
     public List<PresenceDetailDto> presences(@PathVariable Long id) {
         return presenceService.presencesDeLaSession(id);
     }
+
+    /** [AJOUT] EF10 : plus de presence ni de depot ensuite (RG4, RG10), relectures toujours possibles (RG20). */
+    @PostMapping("/{id}/cloture")
+    public SessionDto cloturer(@PathVariable Long id) {
+        return sessionService.cloturer(id);
+    }
 }

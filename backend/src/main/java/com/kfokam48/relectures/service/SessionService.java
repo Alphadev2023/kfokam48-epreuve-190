@@ -72,4 +72,16 @@ public class SessionService {
         }
         throw new IllegalStateException("Impossible de generer un code de presence unique");
     }
+
+    /** EF10 : 404 SESSION_INCONNUE, 409 SESSION_DEJA_CLOTUREE. Verrou pour ne pas croiser un marquage (ENF8). */
+    @Transactional
+    public SessionDto cloturer(Long sessionId) {
+        SessionCours session = sessionRepository.findByIdAvecVerrou(sessionId)
+                .orElseThrow(() -> new MetierException(HttpStatus.NOT_FOUND, "SESSION_INCONNUE"));
+        if (session.estCloturee()) {
+            throw new MetierException(HttpStatus.CONFLICT, "SESSION_DEJA_CLOTUREE");
+        }
+        session.cloturer(Instant.now(horloge));
+        return SessionDto.depuis(session);
+    }
 }

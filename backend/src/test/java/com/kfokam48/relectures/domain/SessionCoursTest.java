@@ -28,4 +28,15 @@ class SessionCoursTest {
     void rg1_leCodeResteExpireEnsuite() {
         assertThat(session.codeValideA(OUVERTURE.plus(Duration.ofHours(2)))).isFalse();
     }
+
+    @Test
+    void rg4_apresClotureLeCodeNEstPlusValideMemeAvantQuinzeMinutes() {
+        SessionCours seance = SessionCours.ouvrir("Seance", new Promotion("P"), "ABCDEF",
+                OUVERTURE, Duration.ofMinutes(15));
+
+        seance.cloturer(OUVERTURE.plus(Duration.ofMinutes(5)));
+
+        assertThat(seance.estCloturee()).isTrue();
+        assertThat(seance.codeValideA(OUVERTURE.plus(Duration.ofMinutes(6)))).isFalse();
+    }
 }
