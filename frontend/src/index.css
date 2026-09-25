@@ -34,3 +34,38 @@ textarea {
 .erreur {
   color: #b00020;
 }
+
+.entete {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.bloc-code {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 2px solid #333;
+  text-align: center;
+}
+
+.code-presence {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 2.5rem;
+  letter-spacing: 0.3em;
+  margin: 0.5rem 0;
+}
+
+.defilement {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
