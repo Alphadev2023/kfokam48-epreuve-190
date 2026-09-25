@@ -65,6 +65,11 @@ public class SessionCours {
         return session;
     }
 
+    /** RG1, RG4 : le code n'est utilisable que si la session est ouverte et que le code n'a pas expire. */
+    public boolean codeValideA(Instant instant) {
+        return statut == StatutSession.OUVERTE && instant.isBefore(expirationAt);
+    }
+
     public Long getId() {
         return id;
     }

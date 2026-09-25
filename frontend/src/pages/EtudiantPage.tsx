@@ -1,4 +1,5 @@
 import { ChoixEtudiant } from "../components/ChoixEtudiant";
+import { MarquerPresence } from "../components/MarquerPresence";
 import { useIdentite } from "../identite/IdentiteContext";
 
 export default function EtudiantPage() {
@@ -23,6 +24,7 @@ export default function EtudiantPage() {
           Ce n'est pas moi
         </button>
       </p>
+      <MarquerPresence etudiantId={identite.etudiantId} />
     </section>
   );
 }
