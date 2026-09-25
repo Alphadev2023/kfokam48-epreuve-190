@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat — KF48 Présences & Relectures
-  version: "1.1"
+  version: "2.0"
   description: |
     Les cinq opérations marquées [IMPOSÉ] sont reprises exactement du contrat fourni :
     mêmes chemins, mêmes verbes, mêmes codes de statut, même format d'erreur.
@@ -292,6 +292,7 @@ paths:
                       presences,
                       exercicesDeposes,
                       moyenne,
+                      moyenneProvisoire,
                       relecturesEnAttente,
                     ]
                   properties:
@@ -300,6 +301,11 @@ paths:
                     presences: { type: integer }
                     exercicesDeposes: { type: integer }
                     moyenne: { type: number, nullable: true }
+                    moyenneProvisoire:
+                      type: boolean
+                      description: |
+                        Ajouté à l'étape 3 (enveloppe, H21) : vrai si la moyenne contient au moins
+                        une note retenue provisoire (une seule relecture rendue sur deux).
                     relecturesEnAttente: { type: integer }
         "404": { $ref: "#/components/responses/Erreur" } # PROMOTION_INCONNUE
 
@@ -403,17 +409,32 @@ components:
         rendue: { type: boolean }
         note: { type: integer, nullable: true }
         commentaire: { type: string, nullable: true }
-    ExerciceRecu:
-      type: object
-      required: [id, sessionId, sessionTitre, lien, statut]
-      properties:
-        id: { type: integer, format: int64 }
-        sessionId: { type: integer, format: int64 }
-        sessionTitre: { type: string }
-        lien: { type: string, format: uri }
-        statut: { $ref: "#/components/schemas/StatutExercice" }
-        note: { type: integer, nullable: true }
-        commentaire: { type: string, nullable: true }
+      ExerciceRecu:
+        type: object
+        description: |
+          Étape 3 (RG21) : la note est la note retenue, moyenne des relectures rendues,
+          arrondie à 2 décimales. Aucun nom de relecteur (RG18).
+        required:
+          [
+            id,
+            sessionId,
+            sessionTitre,
+            lien,
+            statut,
+            noteProvisoire,
+            commentaires,
+          ]
+        properties:
+          id: { type: integer, format: int64 }
+          sessionId: { type: integer, format: int64 }
+          sessionTitre: { type: string }
+          lien: { type: string, format: uri }
+          statut: { $ref: "#/components/schemas/StatutExercice" }
+          note: { type: number, nullable: true }
+          noteProvisoire: { type: boolean }
+          commentaires:
+            type: array
+            items: { type: string }
     ExerciceEnAttente:
       type: object
       required:
