@@ -311,7 +311,7 @@ paths:
 
   /api/tableau/exercices-en-attente:
     get:
-      summary: "[AJOUT] Exercices sans relecture rendue d'une promotion (Q11, EF8)"
+      summary: "[AJOUT] Exercices dont toutes les relectures ne sont pas rendues (Q11, EF8)"
       parameters:
         - $ref: "#/components/parameters/PromotionIdQuery"
       responses:
@@ -435,21 +435,38 @@ components:
           commentaires:
             type: array
             items: { type: string }
-    ExerciceEnAttente:
-      type: object
-      required:
-        [exerciceId, sessionId, sessionTitre, auteurId, auteurNom, statut]
-      properties:
-        exerciceId: { type: integer, format: int64 }
-        sessionId: { type: integer, format: int64 }
-        sessionTitre: { type: string }
-        auteurId: { type: integer, format: int64 }
-        auteurNom: { type: string }
-        relecteurNom:
-          type: string
-          nullable: true
-          description: Visible du formateur uniquement. Nul si aucun relecteur n'est encore attribué
-        statut: { $ref: "#/components/schemas/StatutExercice" }
+      ExerciceEnAttente:
+        type: object
+        description: |
+          EF8 (Q11). Visible du formateur uniquement : les noms des relecteurs
+          n'apparaissent jamais côté étudiant (RG18). Étape 3 : jusqu'à deux relecteurs.
+        required:
+          [
+            exerciceId,
+            sessionId,
+            sessionTitre,
+            auteurId,
+            auteurNom,
+            statut,
+            relecteursAttendus,
+            relecteurs,
+          ]
+        properties:
+          exerciceId: { type: integer, format: int64 }
+          sessionId: { type: integer, format: int64 }
+          sessionTitre: { type: string }
+          auteurId: { type: integer, format: int64 }
+          auteurNom: { type: string }
+          statut: { $ref: "#/components/schemas/StatutExercice" }
+          relecteursAttendus: { type: integer }
+          relecteurs:
+            type: array
+            items:
+              type: object
+              required: [nom, rendue]
+              properties:
+                nom: { type: string }
+                rendue: { type: boolean }
 
   responses:
     Erreur:
