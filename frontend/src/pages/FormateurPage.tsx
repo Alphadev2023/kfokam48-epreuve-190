@@ -3,11 +3,12 @@ import type { FormEvent } from "react";
 import { listerSessions, ouvrirSession } from "../api/sessions";
 import type { Session, SessionOuverte } from "../api/types";
 import { Chargement } from "../components/Chargement";
-import { MessageErreur } from "../components/MessageErreur";
-import { SelecteurPromotion } from "../components/SelecteurPromotion";
-import { formaterDateHeure, formaterHeure } from "../format";
-import { TableauPromotion } from "../components/TableauPromotion";
 import { ExercicesEnAttente } from "../components/ExercicesEnAttente";
+import { MessageErreur } from "../components/MessageErreur";
+import { PresencesSession } from "../components/PresencesSession";
+import { SelecteurPromotion } from "../components/SelecteurPromotion";
+import { TableauPromotion } from "../components/TableauPromotion";
+import { formaterDateHeure, formaterHeure } from "../format";
 
 export default function FormateurPage() {
   const [promotionId, setPromotionId] = useState<number | null>(null);
@@ -21,6 +22,9 @@ export default function FormateurPage() {
 
   const [sessions, setSessions] = useState<Session[] | null>(null);
   const [erreurSessions, setErreurSessions] = useState<unknown>(null);
+
+  // EF9 (Q14) : séance dont on affiche les présences
+  const [sessionSuivie, setSessionSuivie] = useState<Session | null>(null);
 
   const chargerSessions = useCallback((id: number) => {
     setSessions(null);
@@ -58,6 +62,7 @@ export default function FormateurPage() {
         onChange={(id) => {
           setPromotionId(id);
           setSessionOuverte(null);
+          setSessionSuivie(null);
         }}
       />
 
@@ -112,6 +117,7 @@ export default function FormateurPage() {
                     <th>Code</th>
                     <th>Expiration du code</th>
                     <th>Statut</th>
+                    <th>Présences</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -122,12 +128,29 @@ export default function FormateurPage() {
                       <td>{s.code}</td>
                       <td>{formaterDateHeure(s.expirationAt)}</td>
                       <td>{s.statut === "OUVERTE" ? "Ouverte" : "Clôturée"}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => setSessionSuivie(s)}
+                        >
+                          Voir
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
+
+          {sessionSuivie && (
+            <PresencesSession
+              session={sessionSuivie}
+              promotionId={promotionId}
+              onFermer={() => setSessionSuivie(null)}
+            />
+          )}
+
           <TableauPromotion promotionId={promotionId} />
 
           <ExercicesEnAttente promotionId={promotionId} />
