@@ -100,3 +100,10 @@ export interface ExerciceEnAttente {
   relecteursAttendus: number;
   relecteurs: RelecteurSuivi[];
 }
+
+export interface PresenceDetail {
+  etudiantId: number;
+  nom: string;
+  source: SourcePresence;
+  marqueeAt: string;
+}
