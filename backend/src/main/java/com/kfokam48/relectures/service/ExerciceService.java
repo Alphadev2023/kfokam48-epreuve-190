@@ -2,6 +2,7 @@ package com.kfokam48.relectures.service;
 
 import com.kfokam48.relectures.domain.Etudiant;
 import com.kfokam48.relectures.domain.Exercice;
+import com.kfokam48.relectures.domain.Relecture;
 import com.kfokam48.relectures.domain.SessionCours;
 import com.kfokam48.relectures.dto.ExerciceDeposeDto;
 import com.kfokam48.relectures.dto.ExerciceRecuDto;
@@ -10,6 +11,7 @@ import com.kfokam48.relectures.exception.MetierException;
 import com.kfokam48.relectures.repository.EtudiantRepository;
 import com.kfokam48.relectures.repository.ExerciceRepository;
 import com.kfokam48.relectures.repository.PresenceRepository;
+import com.kfokam48.relectures.repository.RelectureRepository;
 import com.kfokam48.relectures.repository.SessionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ExerciceService {
@@ -26,17 +31,19 @@ public class ExerciceService {
     private final EtudiantRepository etudiantRepository;
     private final PresenceRepository presenceRepository;
     private final ExerciceRepository exerciceRepository;
+    private final RelectureRepository relectureRepository;
     private final AttributionService attributionService;
     private final Clock horloge;
 
-
     public ExerciceService(SessionRepository sessionRepository, EtudiantRepository etudiantRepository,
                            PresenceRepository presenceRepository, ExerciceRepository exerciceRepository,
-                           AttributionService attributionService, Clock horloge) {
+                           RelectureRepository relectureRepository, AttributionService attributionService,
+                           Clock horloge) {
         this.sessionRepository = sessionRepository;
         this.etudiantRepository = etudiantRepository;
         this.presenceRepository = presenceRepository;
         this.exerciceRepository = exerciceRepository;
+        this.relectureRepository = relectureRepository;
         this.attributionService = attributionService;
         this.horloge = horloge;
     }
@@ -75,8 +82,13 @@ public class ExerciceService {
         if (!etudiantRepository.existsById(etudiantId)) {
             throw new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU");
         }
-        return exerciceRepository.findByAuteurIdOrderByDeposeAtDesc(etudiantId).stream()
-                .map(ExerciceRecuDto::depuis)
+        List<Exercice> exercices = exerciceRepository.findByAuteurIdOrderByDeposeAtDesc(etudiantId);
+        Map<Long, Relecture> relectureParExercice = relectureRepository
+                .findByExerciceIdIn(exercices.stream().map(Exercice::getId).toList()).stream()
+                .collect(Collectors.toMap(r -> r.getExercice().getId(), Function.identity()));
+
+        return exercices.stream()
+                .map(e -> ExerciceRecuDto.depuis(e, relectureParExercice.get(e.getId())))
                 .toList();
     }
 }

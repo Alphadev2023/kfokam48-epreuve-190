@@ -1,5 +1,6 @@
 package com.kfokam48.relectures.exception;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -43,14 +44,13 @@ public class GlobalExceptionHandler {
         return erreur(HttpStatus.BAD_REQUEST, code);
     }
 
-    @ExceptionHandler({
-            HttpMessageNotReadableException.class,
-            MissingServletRequestParameterException.class,
-            MethodArgumentTypeMismatchException.class,
-            MissingRequestHeaderException.class,
-            HttpMediaTypeNotSupportedException.class
-    })
-    public ResponseEntity<ErreurDto> requeteInvalide(Exception e) {
+    /** RG3 : une note decimale (12.5) ou non numerique ("abc") donne NOTE_INVALIDE, pas REQUETE_INVALIDE. */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErreurDto> illisible(HttpMessageNotReadableException e) {
+        if (e.getCause() instanceof JsonMappingException jme
+                && jme.getPath().stream().anyMatch(ref -> "note".equals(ref.getFieldName()))) {
+            return erreur(HttpStatus.BAD_REQUEST, "NOTE_INVALIDE");
+        }
         return erreur(HttpStatus.BAD_REQUEST, "REQUETE_INVALIDE");
     }
 

@@ -35,7 +35,8 @@ public final class MessagesErreur {
             entry("NOTE_INVALIDE", "La note doit être un nombre entier entre 0 et 20."),
             entry("AUTO_RELECTURE", "Un étudiant ne peut pas relire son propre exercice."),
             entry("RELECTEUR_NON_ATTRIBUE", "Cette relecture est attribuée à un autre étudiant."),
-            entry("RELECTURE_DEJA_RENDUE", "Cette relecture a déjà été rendue et ne peut plus être modifiée.")
+            entry("RELECTURE_DEJA_RENDUE", "Cette relecture a déjà été rendue et ne peut plus être modifiée."),
+            entry("COMMENTAIRE_TROP_LONG", "Le commentaire ne doit pas dépasser 2000 caractères.")
     );
 
     private MessagesErreur() {
