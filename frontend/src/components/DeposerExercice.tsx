@@ -66,8 +66,11 @@ export function DeposerExercice({
   if (donnees === null)
     return <Chargement texte="Chargement de vos sessions..." />;
 
+  // EF10 : une séance clôturée reste affichée si l'étudiant y a déposé, pour qu'il voie sa note
   const sessionsOuvertes = donnees.sessions.filter(
-    (s) => s.statut === "OUVERTE",
+    (s) =>
+      s.statut === "OUVERTE" ||
+      donnees.exercices.some((e) => e.sessionId === s.id),
   );
 
   return (
@@ -84,6 +87,9 @@ export function DeposerExercice({
             return (
               <li key={s.id}>
                 <strong>{s.titre}</strong>
+                {s.statut === "CLOTUREE" && (
+                  <span className="provisoire"> (séance clôturée)</span>
+                )}
                 {exercice ? (
                   <div>
                     <p>
