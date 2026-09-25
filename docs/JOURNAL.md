@@ -29,3 +29,5 @@
 - les codes HTTP comparés au contrat pour chaque endpoint ;
 - les types de colonnes de D2 corrigés quand la validation Hibernate les a refusés (smallint, text) ;
 - H17 (codes exposés par `GET /api/sessions`) relevé en relisant l'écran étudiant.
+
+| 1.2 | 25/09/2026, étape 3, issue #<B> | Ajout de ENF8 après le bug de marquages simultanés signalé par le client ; D3 montre le verrou |

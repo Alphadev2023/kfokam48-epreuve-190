@@ -83,6 +83,8 @@ Conséquences sur le modèle de données :
 | ENF6 | Les horodatages sont stockés en UTC et affichés dans l'heure locale du navigateur                                                     | Dans la réponse de `POST /api/sessions`, `expirationAt` vaut `ouvertureAt` plus 15 minutes. L'écran affiche l'heure locale                                                                                             |
 | ENF7 | Le système tient la volumétrie visée : 60 étudiants par promotion, une quarantaine de sessions, environ 2 400 exercices par promotion | Des index existent sur toutes les clés étrangères et sur `code` (visibles dans la migration V1)                                                                                                                        |
 
+| ENF8 | Des marquages de présence simultanés ne perdent aucune présence et ne produisent aucune erreur technique | Test `PresenceConcurrenceTest` : 8 marquages simultanés donnent 8 présences ; 5 envois simultanés du même étudiant donnent 1 présence et 4 réponses 409 DEJA_PRESENT |
+
 ## 6. Règles de gestion
 
 | Réf  | Règle                                                                                                                                                                     | Source                             |
